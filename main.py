@@ -69,7 +69,7 @@ def scan_and_commit(base_path):
                     print(f"📝 Commit-Message: {message}")
                     commit_changes(root, message)
                     push_changes(root)
-            #dirs.clear()  # Unterordner nicht rekursiv prüfen
+            dirs.clear()  # Unterordner nicht rekursiv prüfen
 
 if __name__ == "__main__":
     scan_and_commit(base_path)

@@ -33,8 +33,15 @@ def has_changes(path):
         return False
 
 def get_diff(path):
+    """Return the diff of staged changes for the given git repository."""
     try:
-        return subprocess.check_output(["git", "-C", path, "diff"]).decode()
+        return subprocess.check_output([
+            "git",
+            "-C",
+            path,
+            "diff",
+            "--staged",
+        ]).decode()
     except subprocess.CalledProcessError:
         return ""
 
@@ -63,6 +70,7 @@ def scan_and_commit(base_path):
             print(f"📁 GitHub-Repo gefunden: {root}")
             if has_changes(root):
                 print(f"🔄 Änderungen gefunden in {root}")
+                subprocess.run(["git", "-C", root, "add", "-A"], check=True)
                 diff = get_diff(root)
                 if diff:
                     message = generate_commit_message(diff)

@@ -30,7 +30,7 @@ def scan_and_commit(base_path: str = BASE_PATH) -> None:
                         push_changes(root)
                     else:
                         print("Commit abgebrochen.")
-            dirs.clear()  # Unterordner nicht rekursiv prüfen
+            dirs.clear()  
 
 
 if __name__ == "__main__":

@@ -24,8 +24,12 @@ def scan_and_commit(base_path: str = BASE_PATH) -> None:
                 if diff:
                     message = generate_commit_message(diff)
                     print(f"\U0001F4DD Commit-Message: {message}")
-                    commit_changes(root, message)
-                    push_changes(root)
+                    confirm = input("Commit message verwenden? (y/[n]): ").strip().lower()
+                    if confirm == "y":
+                        commit_changes(root, message)
+                        push_changes(root)
+                    else:
+                        print("Commit abgebrochen.")
             dirs.clear()  # Unterordner nicht rekursiv prüfen
 
 

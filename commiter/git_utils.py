@@ -37,8 +37,10 @@ def get_diff(path: str) -> str:
 
 
 def commit_changes(path: str, message: str) -> None:
-    subprocess.run(["git", "-C", path, "add", "."], check=True)
-    subprocess.run(["git", "-C", path, "commit", "-m", message], check=True)
+    try:
+        subprocess.run(["git", "-C", path, "commit", "-m", message], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Failed to commit changes in {path}: {e}")
 
 
 def push_changes(path: str) -> None:

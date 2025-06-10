@@ -1,86 +1,33 @@
 import os
 import subprocess
-from dotenv import load_dotenv
-from openai import OpenAI
 
-# .env laden
-load_dotenv()
+from commiter.config import BASE_PATH
+from commiter.git_utils import (
+    is_git_repo,
+    has_github_remote,
+    has_changes,
+    get_diff,
+    commit_changes,
+    push_changes,
+)
+from commiter.openai_utils import generate_commit_message
 
-# OpenAI-Client initialisieren
-client = OpenAI()
 
-# Projektverzeichnis aus .env
-base_path = os.getenv("PROJECT_BASE_PATH")
-
-if not base_path or not os.path.isdir(base_path):
-    raise ValueError("PROJECT_BASE_PATH ist nicht gesetzt oder ungültig.")
-
-def is_git_repo(path):
-    return os.path.isdir(os.path.join(path, ".git"))
-
-def has_github_remote(path):
-    try:
-        remotes = subprocess.check_output(["git", "-C", path, "remote", "-v"]).decode()
-        return any("github.com" in line for line in remotes.splitlines())
-    except subprocess.CalledProcessError:
-        return False
-
-def has_changes(path):
-    try:
-        status = subprocess.check_output(["git", "-C", path, "status", "--porcelain"]).decode()
-        return bool(status.strip())
-    except subprocess.CalledProcessError:
-        return False
-
-def get_diff(path):
-    """Return the diff of staged changes for the given git repository."""
-    try:
-        return subprocess.check_output([
-            "git",
-            "-C",
-            path,
-            "diff",
-            "--staged",
-        ]).decode()
-    except subprocess.CalledProcessError:
-        return ""
-
-def generate_commit_message(diff):
-    prompt = f"Write a concise and clear git commit message summarizing the following diff:\n{diff}\n"
-    response = client.chat.completions.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant who writes concise git commit messages."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=100
-    )
-    return response.choices[0].message.content.strip()
-
-def commit_changes(path, message):
-    subprocess.run(["git", "-C", path, "add", "."], check=True)
-    subprocess.run(["git", "-C", path, "commit", "-m", message], check=True)
-
-def push_changes(path):
-    try:
-        subprocess.run(["git", "-C", path, "push"], check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"❌ Failed to push changes in {path}: {e}")
-
-def scan_and_commit(base_path):
+def scan_and_commit(base_path: str = BASE_PATH) -> None:
     for root, dirs, _ in os.walk(base_path):
         if is_git_repo(root) and has_github_remote(root):
-            print(f"📁 GitHub-Repo gefunden: {root}")
+            print(f"\U0001F4C1 GitHub-Repo gefunden: {root}")
             if has_changes(root):
-                print(f"🔄 Änderungen gefunden in {root}")
+                print(f"\U0001F501 \u00c4nderungen gefunden in {root}")
                 subprocess.run(["git", "-C", root, "add", "-A"], check=True)
                 diff = get_diff(root)
                 if diff:
                     message = generate_commit_message(diff)
-                    print(f"📝 Commit-Message: {message}")
+                    print(f"\U0001F4DD Commit-Message: {message}")
                     commit_changes(root, message)
                     push_changes(root)
             dirs.clear()  # Unterordner nicht rekursiv prüfen
 
+
 if __name__ == "__main__":
-    scan_and_commit(base_path)
+    scan_and_commit()

@@ -62,7 +62,10 @@ def commit_changes(path, message):
     subprocess.run(["git", "-C", path, "commit", "-m", message], check=True)
 
 def push_changes(path):
-    subprocess.run(["git", "-C", path, "push"], check=True)
+    try:
+        subprocess.run(["git", "-C", path, "push"], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Failed to push changes in {path}: {e}")
 
 def scan_and_commit(base_path):
     for root, dirs, _ in os.walk(base_path):
